@@ -16,46 +16,52 @@ import android.widget.Toast;
 
 import com.example.myapplication.Object.Card;
 import com.example.myapplication.Object.Utils;
-
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import org.w3c.dom.Text;
-
+import android.view.LayoutInflater;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
-    List<Card> deckPlayer = new ArrayList<Card>(Utils.NewCardsDeck());
-    Card tablePending;
+    public static List<Card> DeckPlayer = new ArrayList<Card>(Utils.NewCardsDeck());
 
+    Card tablePending;
+    public static LinearLayout deckPlayer;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
-        LinearLayout linearLayout = (LinearLayout) findViewById(R.id.idPlayer);
-        LinearLayout table = findViewById(R.id.idTable);
+       deckPlayer = (LinearLayout) findViewById(R.id.idPlayer);
 
-        Card card = Utils.buyCards();
-        deckPlayer.add(Utils.buyCards());
+        LinearLayout  table = findViewById(R.id.idTable);
+        LinearLayout deckEnemy = (LinearLayout) findViewById(R.id.idEnemy);
+        LinearLayout cardBuy = findViewById(R.id.idBuy);
+
+        Card card = Utils.GerarCard();
+
         TextView textView2 = new TextView(MainActivity.this);
         textView2.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
         textView2.setText("" + card.getNumber());
         textView2.setTextSize(20);
         textView2.setGravity(Gravity.CENTER);
         textView2.setRotation(90);
-        if (card.getColor()== 0) {
+        if (card.getColor() == 0) {
             //verde
             textView2.setBackgroundColor(Color.argb(255, 0, 128, 51));
         }
-        if (card.getColor()== 1) {
+        if (card.getColor() == 1) {
             ///azul
             textView2.setBackgroundColor(Color.argb(255, 45, 76, 189));
         }
-        if (card.getColor()== 2) {
+        if (card.getColor() == 2) {
             //vermelho
             textView2.setBackgroundColor(Color.argb(255, 179, 71, 46));
         }
-        if (card.getColor()== 3) {
+        if (card.getColor() == 3) {
             //amarelo
             textView2.setBackgroundColor(Color.argb(255, 224, 217, 70));
         }
@@ -65,115 +71,44 @@ public class MainActivity extends AppCompatActivity {
 
         table.addView(textView2);
 
-        for (int i = 0; i <7; i++) {
-            // Add textview 1
+
+        for (int i = 0; i < 7; i++) {
             TextView textView1 = new TextView(this);
             textView1.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-            textView1.setText("" + i);
-
-            final int cardIndex = i;
-
+            textView1.setText("" + DeckPlayer.get(i).getId());
             textView1.setTextSize(20);
+            textView1.setId(DeckPlayer.get(i).getId());
             textView1.setGravity(Gravity.CENTER);
             textView1.setRotation(90);
-            if (deckPlayer.get(i).getColor()== 0) {
+            if (DeckPlayer.get(i).getColor() == 0) {
                 //verde
                 textView1.setBackgroundColor(Color.argb(255, 0, 128, 51));
             }
-            if (deckPlayer.get(i).getColor() == 1) {
+            if (DeckPlayer.get(i).getColor() == 1) {
                 ///azul
                 textView1.setBackgroundColor(Color.argb(255, 45, 76, 189));
             }
-            if (deckPlayer.get(i).getColor() == 2) {
+            if (DeckPlayer.get(i).getColor() == 2) {
                 //vermelho
                 textView1.setBackgroundColor(Color.argb(255, 179, 71, 46));
             }
-            if (deckPlayer.get(i).getColor()== 3) {
+            if (DeckPlayer.get(i).getColor() == 3) {
                 //amarelo
                 textView1.setBackgroundColor(Color.argb(255, 224, 217, 70));
             }
 
-            // hex color 0xAARRGGBB
             textView1.setTextColor(Color.argb(255, 255, 255, 255));
             textView1.setPadding(50, 50, 50, 20);// in pixels (left, top, right, bottom)
+
             textView1.setOnClickListener(new View.OnClickListener() {
-
                 @Override
-                public void onClick(View v) {
+                public void onClick(View view) {
 
-                    Card card  = deckPlayer.get(cardIndex);
-                  
-                    textView2.setLayoutParams(textView1.getLayoutParams());
-                    textView2.setText(textView1.getText());
-                    textView2.setTextSize(textView1.getTextSize());
-                    textView2.setGravity(textView1.getGravity());
-                    textView2.setRotation(textView1.getRotation());
-                    textView2.setTextColor(textView1.getTextColors());
-                    textView2.setPadding(textView1.getPaddingLeft(), textView1.getPaddingTop(), textView1.getPaddingRight(), textView1.getPaddingBottom());
-                    Drawable backgroundDrawable = textView1.getBackground();
-                    ColorDrawable colorDrawable = (ColorDrawable) backgroundDrawable;
-
-
-                    int backgroundColor = colorDrawable.getColor();
-                    textView2.setBackgroundColor(backgroundColor);
-                    linearLayout.removeView(textView1);      deckPlayer.remove(card);
-                    Toast toast = Toast.makeText(MainActivity.this, "num: "+ (deckPlayer.size()-1), Toast.LENGTH_SHORT);
-                    toast.setDuration(Toast.LENGTH_SHORT); // Defina a duração em milissegundos (neste caso, 5 segundos)
-                    toast.show();
-
-                }
-            });
-
-            linearLayout.addView(textView1);
-        }
-
-        LinearLayout cardBuy = findViewById(R.id.idBuy);
-
-
-        cardBuy.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                Card card = Utils.buyCards();
-                final int cardIndex = deckPlayer.size();
-                card.setId(deckPlayer.size());
-                deckPlayer.add(Utils.buyCards());
-
-                TextView textView1 = new TextView(MainActivity.this);
-                textView1.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-                textView1.setText("" + card.getNumber());
-
-                textView1.setTextSize(20);
-                textView1.setGravity(Gravity.CENTER);
-                textView1.setRotation(90);
-
-                if (card.getColor()== 0) {
-                    //verde
-                    textView1.setBackgroundColor(Color.argb(255, 0, 128, 51));
-                }
-                if (card.getColor()== 1) {
-                    ///azul
-                    textView1.setBackgroundColor(Color.argb(255, 45, 76, 189));
-                }
-                if (card.getColor()== 2) {
-                    //vermelho
-                    textView1.setBackgroundColor(Color.argb(255, 179, 71, 46));
-                }
-                if (card.getColor()== 3) {
-                    //amarelo
-                    textView1.setBackgroundColor(Color.argb(255, 224, 217, 70));
-                }
-
-                // hex color 0xAARRGGBB
-                textView1.setTextColor(Color.argb(255, 255, 255, 255));
-                textView1.setPadding(50, 50, 50, 20);// in pixels (left, top, right, bottom)
-                textView1.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-
-
-
+                    if(deckPlayer.isClickable()){
+                    for (int j = 0; j < DeckPlayer.size(); j++) {
+                        Card aux = DeckPlayer.get(j);
+                        if (aux.getId() == textView1.getId()) {
+                            deckPlayer.setClickable(false);
                             textView2.setLayoutParams(textView1.getLayoutParams());
                             textView2.setText(textView1.getText());
                             textView2.setTextSize(textView1.getTextSize());
@@ -183,21 +118,98 @@ public class MainActivity extends AppCompatActivity {
                             textView2.setPadding(textView1.getPaddingLeft(), textView1.getPaddingTop(), textView1.getPaddingRight(), textView1.getPaddingBottom());
                             Drawable backgroundDrawable = textView1.getBackground();
                             ColorDrawable colorDrawable = (ColorDrawable) backgroundDrawable;
-                            deckPlayer.remove(cardIndex);
-                            // Obtenha a cor de fundo
                             int backgroundColor = colorDrawable.getColor();
                             textView2.setBackgroundColor(backgroundColor);
-                            linearLayout.removeView(textView1);
+                            DeckPlayer.remove(aux);
+                            deckPlayer.removeView(textView1);
 
+                            if(DeckPlayer.size()==0){
+                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                LayoutInflater inflater = getLayoutInflater();
+                                View dialogView = inflater.inflate(R.layout.modal_win, null);
+                                builder.setView(dialogView);
+                                builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                    }
+                                });     AlertDialog dialog = builder.create();
+                                dialog.show();
+                            }
+                            else{
+                                ControllerIA ai=new ControllerIA();
+                                ai.Choose(tablePending,MainActivity.this);
+                            }
+                        }
+                    }}
 
-                            if(deckPlayer.size()==0){
-                            Toast toast = Toast.makeText(MainActivity.this, "acabou", Toast.LENGTH_SHORT);
-                            toast.setDuration(Toast.LENGTH_SHORT); // Defina a duração em milissegundos (neste caso, 5 segundos)
-                            toast.show();}
+                }
+            });
+            deckPlayer.addView(textView1);
+        }
+        for (int i = 0; i < 7; i++) {
+            TextView textView1 = new TextView(this);
+            textView1.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
+            textView1.setTextSize(20);
+            textView1.setId(DeckPlayer.get(i).getId());
+            textView1.setGravity(Gravity.CENTER);
+            textView1.setRotation(90);
+            textView1.setBackgroundColor(Color.argb(255, 0, 0, 0));
+
+            textView1.setTextColor(Color.argb(255, 255, 255, 255));
+            textView1.setPadding(50, 50, 50, 20);// in pixels (left, top, right, bottom)
+
+            deckEnemy.addView(textView1);
+        }
+        cardBuy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Card card = Utils.buyCards();
+                DeckPlayer.add(card);
+                TextView textView2 = new TextView(MainActivity.this);
+                textView2.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+                textView2.setText("" + card.getNumber());
+                textView2.setTextSize(20);
+                textView2.setId(card.getId());
+                textView2.setGravity(Gravity.CENTER);
+                textView2.setRotation(90);
+                if (card.getColor() == 0) {
+                    //verde
+                    textView2.setBackgroundColor(Color.argb(255, 0, 128, 51));
+                }
+                if (card.getColor() == 1) {
+                    ///azul
+                    textView2.setBackgroundColor(Color.argb(255, 45, 76, 189));
+                }
+                if (card.getColor() == 2) {
+                    //vermelho
+                    textView2.setBackgroundColor(Color.argb(255, 179, 71, 46));
+                }
+                if (card.getColor() == 3) {
+                    //amarelo
+                    textView2.setBackgroundColor(Color.argb(255, 224, 217, 70));
+                }
+
+                textView2.setTextColor(Color.argb(255, 255, 255, 255));
+                textView2.setPadding(50, 50, 50, 20);// in pixels (left, top, right, bottom)
+
+                textView2.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Toast toast = Toast.makeText(MainActivity.this, "num: ", Toast.LENGTH_SHORT);
+                        toast.setDuration(Toast.LENGTH_SHORT); // Defina a duração em milissegundos (neste caso, 5 segundos)
+                        toast.show();
+                        for (int j = 0; j < DeckPlayer.size(); j++) {
+                            Card aux = DeckPlayer.get(j);
+                            if (aux.getId() == textView2.getId()) {
+                                DeckPlayer.remove(aux);
+                                deckPlayer.removeView(textView2);
+                            }
+                        }
                     }
                 });
-                linearLayout.addView(textView1);
+                deckPlayer.addView(textView2);
             }
         });
 
