@@ -17,13 +17,24 @@ public class HomeActivity extends AppCompatActivity {
 
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor edit = pref.edit();
-        Button btnBOT = findViewById(R.id.chooseIA);
-        btnBOT.setOnClickListener(new View.OnClickListener() {
+        Button btnServer = findViewById(R.id.chooseServer);
+        Button btnCliente = findViewById(R.id.chooseCliente);
+        btnServer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                edit.putBoolean("KEY_IA", true).apply();
-                Intent inte = new Intent();
+                edit.putBoolean("KEY_SERVER", true).apply();
+                Intent inte = new Intent(HomeActivity.this,MainActivity.class);
+                startActivity(inte);
+
+            }
+        });
+        btnCliente.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+
+                Intent inte = new Intent(HomeActivity.this,MainActivity.class);
                 startActivity(inte);
 
             }

@@ -7,10 +7,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <Button
-        android:text="PLAY BOT"
-        android:id="@+id/chooseIA"
+        android:text="PLAY Server"
+        android:id="@+id/chooseServer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
+    <Button
+        android:text="PLAY Cliente"
+        android:id="@+id/chooseCliente"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 </LinearLayout>
 </LinearLayout>
