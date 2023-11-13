@@ -17,28 +17,29 @@ public class HomeActivity extends AppCompatActivity {
 
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor edit = pref.edit();
+
         Button btnServer = findViewById(R.id.chooseServer);
         Button btnCliente = findViewById(R.id.chooseCliente);
+
         btnServer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 edit.putBoolean("KEY_SERVER", true).apply();
-                Intent inte = new Intent(HomeActivity.this,MainActivity.class);
+                SocketServer server = new SocketServer(12345); // 12345 é o número da porta
+                server.start(); // Inicia o servidor em uma thread separada
+                Intent inte = new Intent(HomeActivity.this, MainActivity.class);
                 startActivity(inte);
-
             }
         });
+
         btnCliente.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-
-                Intent inte = new Intent(HomeActivity.this,MainActivity.class);
+                SocketClient client = new SocketClient("10.0.2.16", 12345);
+                client.start(); // Inicia o cliente em uma thread separada
+                Intent inte = new Intent(HomeActivity.this, MainActivity.class);
                 startActivity(inte);
-
             }
         });
     }
-
 }

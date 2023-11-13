@@ -5,4 +5,5 @@
     <color name="azul">#064c72</color>
     <color name="red">#e9311a</color>
     <color name="orange">#ed6335</color>
+    <color name="transparent">#00000000</color>
 </resources>
