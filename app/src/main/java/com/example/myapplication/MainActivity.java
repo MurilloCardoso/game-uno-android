@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
@@ -41,11 +42,11 @@ import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
     public static List<Card> DeckPlayer = new ArrayList<Card>(Utils.NewCardsDeck());
-
     Card tablePending;
+
     public static LinearLayout deckPlayer;
     private Handler handler = new Handler(Looper.getMainLooper());
-
+    public Controller controle =new Controller();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,13 +71,12 @@ public class MainActivity extends AppCompatActivity {
                             }
                         });
 
-                        InputStreamReader inputReader = new InputStreamReader(socket.getInputStream());
-                        PrintStream saida = new PrintStream(socket.getOutputStream());
-                        BufferedReader reader = new BufferedReader(inputReader);
-                        String x = "a";
-                        while ((x = reader.readLine()) != null) {
-                            // Process incoming data, if needed
-                        }
+                        InputStreamReader InputReader= new InputStreamReader(socket.getInputStream());
+                        BufferedReader reader=new BufferedReader(InputReader);
+
+
+                            showMessageFromServer(reader.readLine());
+
 
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
             serverThread.start(); // Start the server in the background
         } else {
-            new Controller().execute();
+            controle.execute();
         }
 
 
@@ -158,8 +158,10 @@ public class MainActivity extends AppCompatActivity {
             textView1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
-
+                    String mensagem = "Sua mensagem aqui";
+                    if (controle != null && controle.isConnected()) {
+                        controle.sendStringToServer(mensagem,MainActivity.this);
+                    }
                     for (int j = 0; j < DeckPlayer.size(); j++) {
                         Card aux = DeckPlayer.get(j);
                         if (tablePending.getNumber() == aux.getNumber() || tablePending.getColor()==aux.getColor()) {
@@ -297,5 +299,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+    private void showMessageFromServer(String message) {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "Mensagem do servidor: " + message, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }
