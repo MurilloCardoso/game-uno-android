@@ -4,6 +4,8 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.view.View;
@@ -26,16 +28,23 @@ import org.w3c.dom.Text;
 
 import android.view.LayoutInflater;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
     public static List<Card> DeckPlayer = new ArrayList<Card>(Utils.NewCardsDeck());
 
     Card tablePending;
     public static LinearLayout deckPlayer;
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,20 +53,42 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
 
-//        if(pref.getBoolean("KEY_SERVER",false)){
-//
-//            // Crie um novo Thread para iniciar o servidor
-//            Thread serverThread = new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    LocalServer.loadServer();
-//                }
-//            });
-//
-//            serverThread.start(); // Inicie o servidor em segundo plano
-//        }else{
-//            Controller.Choose();
-//        }
+        if (pref.getBoolean("KEY_SERVER", false)) {
+            // Create a new Thread to start the server
+            Thread serverThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        ServerSocket server = new ServerSocket(4000);
+                        Socket socket = server.accept();
+
+                        // Use a Handler to post a Runnable to the main thread
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, "Cliente conectou", Toast.LENGTH_LONG).show();
+                            }
+                        });
+
+                        InputStreamReader inputReader = new InputStreamReader(socket.getInputStream());
+                        PrintStream saida = new PrintStream(socket.getOutputStream());
+                        BufferedReader reader = new BufferedReader(inputReader);
+                        String x = "a";
+                        while ((x = reader.readLine()) != null) {
+                            // Process incoming data, if needed
+                        }
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+
+            serverThread.start(); // Start the server in the background
+        } else {
+            new Controller().execute();
+        }
+
 
         deckPlayer = (LinearLayout) findViewById(R.id.idPlayer);
 

@@ -1,29 +1,28 @@
 package com.example.myapplication;
 
-import com.example.myapplication.Object.Card;
-import android.content.Context;
-import java.io.*;
-import java.net.*;
+import android.os.AsyncTask;
 
-public class Controller {
+import java.io.IOException;
+import java.net.Socket;
 
-    public static void Choose() {
-        try (
-                Socket clientSocket = new Socket
-                        ("192.168.100.1", 80);
-             DataInputStream inbound = new DataInputStream(clientSocket.getInputStream());
-             DataOutputStream outbound = new DataOutputStream(clientSocket.getOutputStream())) {
-
-            outbound.writeInt(3);
-            outbound.writeUTF("hello");
-            int k = inbound.readInt();
-            String s = inbound.readUTF();
-
-            // Process the server's response here (k and s).
-            System.out.println("Received: " + k + " " + s);
+public class Controller extends AsyncTask<Void, Void, Socket> {
+    @Override
+    protected Socket doInBackground(Void... voids) {
+        try {
+            return new Socket("192.168.100.1", 4000);
         } catch (IOException e) {
-            e.printStackTrace(); // Handle the exception appropriately
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    protected void onPostExecute(Socket socket) {
+        // Handle the result, for example, show a Toast message or continue with your app logic
+        if (socket != null) {
+            // Connection successful, continue with your logic
+        } else {
+            // Connection failed, handle the error
         }
     }
 }
-
