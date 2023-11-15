@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -17,36 +18,34 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.myapplication.Object.Card;
 import com.example.myapplication.Object.Utils;
+import com.example.myapplication.socket.ClienteController;
+import com.example.myapplication.socket.ServerController;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 
-import org.w3c.dom.Text;
-
 import android.view.LayoutInflater;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
+
+    //Sockets
+    private ClienteController clienteController;
+    private ServerController serverController;
+    android.os.Handler handler = new Handler(Looper.getMainLooper());
+
     public static List<Card> DeckPlayer = new ArrayList<Card>(Utils.NewCardsDeck());
+
     Card tablePending;
 
     public static LinearLayout deckPlayer;
-    private Handler handler = new Handler(Looper.getMainLooper());
-    public Controller controle =new Controller();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,38 +54,14 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
 
         if (pref.getBoolean("KEY_SERVER", false)) {
-            // Create a new Thread to start the server
-            Thread serverThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        ServerSocket server = new ServerSocket(4000);
-                        Socket socket = server.accept();
-
-                        // Use a Handler to post a Runnable to the main thread
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(MainActivity.this, "Cliente conectou", Toast.LENGTH_LONG).show();
-                            }
-                        });
-
-                        InputStreamReader InputReader= new InputStreamReader(socket.getInputStream());
-                        BufferedReader reader=new BufferedReader(InputReader);
-
-
-                            showMessageFromServer(reader.readLine());
-
-
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            });
-
-            serverThread.start(); // Start the server in the background
+            //Server
+            serverController = new ServerController();
+            serverController.setHandler(handler);
+            serverController.setContext(MainActivity.this);
+            serverController.onServer();
         } else {
-            controle.execute();
+            //Cliente
+            new InitClienteControllerTask().execute();
         }
 
 
@@ -158,10 +133,10 @@ public class MainActivity extends AppCompatActivity {
             textView1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    String mensagem = "Sua mensagem aqui";
-                    if (controle != null && controle.isConnected()) {
-                        controle.sendStringToServer(mensagem,MainActivity.this);
-                    }
+//                    String mensagem = "Sua mensagem aqui";
+//                    if (controle != null && controle.isConnected()) {
+//                        controle.sendStringToServer(mensagem,MainActivity.this);
+//                    }
                     for (int j = 0; j < DeckPlayer.size(); j++) {
                         Card aux = DeckPlayer.get(j);
                         if (tablePending.getNumber() == aux.getNumber() || tablePending.getColor()==aux.getColor()) {
@@ -222,90 +197,114 @@ public class MainActivity extends AppCompatActivity {
         cardBuy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Card card = Utils.buyCards();
-                DeckPlayer.add(card);
-                TextView textViewBuy = new TextView(MainActivity.this);
-                textViewBuy.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-                textViewBuy.setText("" + card.getNumber());
-                textViewBuy.setTextSize(20);
-                textViewBuy.setId(card.getId());
-                textViewBuy.setGravity(Gravity.CENTER);
-                textViewBuy.setRotation(90);
-                if (card.getColor() == 0) {
-                    //verde
-                    textViewBuy.setBackgroundColor(Color.argb(255, 0, 128, 51));
-                }
-                if (card.getColor() == 1) {
-                    ///azul
-                    textViewBuy.setBackgroundColor(Color.argb(255, 45, 76, 189));
-                }
-                if (card.getColor() == 2) {
-                    //vermelho
-                    textViewBuy.setBackgroundColor(Color.argb(255, 179, 71, 46));
-                }
-                if (card.getColor() == 3) {
-                    //amarelo
-                    textViewBuy.setBackgroundColor(Color.argb(255, 224, 217, 70));
-                }
-
-                textViewBuy.setTextColor(Color.argb(255, 255, 255, 255));
-                textViewBuy.setPadding(50, 50, 50, 20);// in pixels (left, top, right, bottom)
-
-                textViewBuy.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-
-                        for (int j = 0; j < DeckPlayer.size(); j++) {
-                            Card aux = DeckPlayer.get(j);
-                            if (tablePending.getNumber() == aux.getNumber() || tablePending.getColor()==aux.getColor()) {
-                                if (aux.getId() == textViewBuy.getId()) {
-                                    tablePending=aux;
-                                    textViewBuy.setLayoutParams(textViewBuy.getLayoutParams());
-                                    textView2.setText(textViewBuy.getText());
-                                    textView2.setTextSize(textViewBuy.getTextSize());
-                                    textView2.setGravity(textViewBuy.getGravity());
-                                    textView2.setRotation(textViewBuy.getRotation());
-                                    textView2.setTextColor(textViewBuy.getTextColors());
-                                    textView2.setPadding(textViewBuy.getPaddingLeft(), textViewBuy.getPaddingTop(), textViewBuy.getPaddingRight(),textViewBuy.getPaddingBottom());
-                                    Drawable backgroundDrawable = textViewBuy.getBackground();
-                                    ColorDrawable colorDrawable = (ColorDrawable) backgroundDrawable;
-                                    int backgroundColor = colorDrawable.getColor();
-                                    textView2.setBackgroundColor(backgroundColor);
-                                    DeckPlayer.remove(aux);
-                                    deckPlayer.removeView(textViewBuy);
-
-
-                                    if (DeckPlayer.size() == 0) {
-                                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                                        LayoutInflater inflater = getLayoutInflater();
-                                        View dialogView = inflater.inflate(R.layout.modal_win, null);
-                                        builder.setView(dialogView);
-                                        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                dialog.dismiss();
-                                            }
-                                        });
-                                        AlertDialog dialog = builder.create();
-                                        dialog.show();
-                                    }
-                                }
-                            }
-
-                        }
-                    }
-                });
-                deckPlayer.addView(textViewBuy);
-            }
+                sendMessage();
+//                Card card = Utils.buyCards();
+//                DeckPlayer.add(card);
+//                TextView textViewBuy = new TextView(MainActivity.this);
+//                textViewBuy.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+//                textViewBuy.setText("" + card.getNumber());
+//                textViewBuy.setTextSize(20);
+//                textViewBuy.setId(card.getId());
+//                textViewBuy.setGravity(Gravity.CENTER);
+//                textViewBuy.setRotation(90);
+//                if (card.getColor() == 0) {
+//                    //verde
+//                    textViewBuy.setBackgroundColor(Color.argb(255, 0, 128, 51));
+//                }
+//                if (card.getColor() == 1) {
+//                    ///azul
+//                    textViewBuy.setBackgroundColor(Color.argb(255, 45, 76, 189));
+//                }
+//                if (card.getColor() == 2) {
+//                    //vermelho
+//                    textViewBuy.setBackgroundColor(Color.argb(255, 179, 71, 46));
+//                }
+//                if (card.getColor() == 3) {
+//                    //amarelo
+//                    textViewBuy.setBackgroundColor(Color.argb(255, 224, 217, 70));
+//                }
+//
+//                textViewBuy.setTextColor(Color.argb(255, 255, 255, 255));
+//                textViewBuy.setPadding(50, 50, 50, 20);// in pixels (left, top, right, bottom)
+//
+//                textViewBuy.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//
+//                        for (int j = 0; j < DeckPlayer.size(); j++) {
+//                            Card aux = DeckPlayer.get(j);
+//                            if (tablePending.getNumber() == aux.getNumber() || tablePending.getColor()==aux.getColor()) {
+//                                if (aux.getId() == textViewBuy.getId()) {
+//                                    tablePending=aux;
+//                                    textViewBuy.setLayoutParams(textViewBuy.getLayoutParams());
+//                                    textView2.setText(textViewBuy.getText());
+//                                    textView2.setTextSize(textViewBuy.getTextSize());
+//                                    textView2.setGravity(textViewBuy.getGravity());
+//                                    textView2.setRotation(textViewBuy.getRotation());
+//                                    textView2.setTextColor(textViewBuy.getTextColors());
+//                                    textView2.setPadding(textViewBuy.getPaddingLeft(), textViewBuy.getPaddingTop(), textViewBuy.getPaddingRight(),textViewBuy.getPaddingBottom());
+//                                    Drawable backgroundDrawable = textViewBuy.getBackground();
+//                                    ColorDrawable colorDrawable = (ColorDrawable) backgroundDrawable;
+//                                    int backgroundColor = colorDrawable.getColor();
+//                                    textView2.setBackgroundColor(backgroundColor);
+//                                    DeckPlayer.remove(aux);
+//                                    deckPlayer.removeView(textViewBuy);
+//
+//
+//                                    if (DeckPlayer.size() == 0) {
+//                                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+//                                        LayoutInflater inflater = getLayoutInflater();
+//                                        View dialogView = inflater.inflate(R.layout.modal_win, null);
+//                                        builder.setView(dialogView);
+//                                        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+//                                            @Override
+//                                            public void onClick(DialogInterface dialog, int which) {
+//                                                dialog.dismiss();
+//                                            }
+//                                        });
+//                                        AlertDialog dialog = builder.create();
+//                                        dialog.show();
+//                                    }
+//                                }
+//                            }
+//
+//                        }
+//                    }
+//                });
+//                deckPlayer.addView(textViewBuy);
+          }
         });
 
     }
-    private void showMessageFromServer(String message) {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(MainActivity.this, "Mensagem do servidor: " + message, Toast.LENGTH_LONG).show();
+    private void sendMessage() {
+        String message = "awdawdawdawdm";
+        if (!message.isEmpty()) {
+            new SendMessageTask().execute(message);
+        }
+    }
+
+    private class SendMessageTask extends AsyncTask<String, Void, Void> {
+        @Override
+        protected Void doInBackground(String... messages) {
+            if (clienteController != null) {
+                for (String message : messages) {
+                    clienteController.sendStringToServer(message, MainActivity.this);
+                }
             }
-        });
+            return null;
+        }
+    }
+    // AsyncTask para inicializar o ClienteController
+    private class InitClienteControllerTask extends AsyncTask<Void, Void, Void> {
+        @SuppressLint("WrongThread")
+        @Override
+        protected Void doInBackground(Void... voids) {
+            // Inicializar o ClienteController
+            clienteController = new ClienteController();
+            clienteController.setContexto(MainActivity.this);
+            clienteController.setHandler(new Handler(Looper.getMainLooper()));
+            clienteController.execute();
+            return null;
+        }
     }
 }
